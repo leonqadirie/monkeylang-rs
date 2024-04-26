@@ -23,10 +23,8 @@ impl Lexer {
     fn next_token(&mut self) -> TokenType {
         skip_white_space(self);
 
-        if self.char.is_ascii_alphabetic() || self.char == '_' {
-            read_identifier(self)
-        } else if self.char.is_ascii_digit() {
-            read_number(self)
+        if self.char.is_ascii_alphanumeric() || self.char == '_' {
+            read_dynamic_token(self)
         } else {
             let token = self.char.to_string().into();
             self.read_char();
@@ -34,6 +32,7 @@ impl Lexer {
             token
         }
     }
+
     fn read_char(&mut self) {
         self.char = if self.input.len() <= self.read_pos {
             '\0'
@@ -51,7 +50,7 @@ impl Lexer {
     }
 }
 
-fn read_identifier(lexer: &mut Lexer) -> TokenType {
+fn read_dynamic_token(lexer: &mut Lexer) -> TokenType {
     let mut identifier = String::new();
     while lexer.char.is_alphanumeric() || lexer.char == '_' {
         identifier.push(lexer.char);
@@ -59,23 +58,6 @@ fn read_identifier(lexer: &mut Lexer) -> TokenType {
     }
 
     identifier.into()
-}
-
-fn read_number(lexer: &mut Lexer) -> TokenType {
-    let mut integer: usize = 0;
-    while lexer.char.is_ascii_digit() {
-        integer *= 10;
-        //TODO: handle integer overflow with more grace
-        integer = integer.saturating_add(
-            lexer
-                .char
-                .to_digit(10)
-                .expect(format!("couldn't convert {} to digit", lexer.char).as_str())
-                as usize,
-        );
-        lexer.read_char();
-    }
-    TokenType::INT(integer)
 }
 
 fn skip_white_space(lexer: &mut Lexer) {

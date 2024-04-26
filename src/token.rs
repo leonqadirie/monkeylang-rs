@@ -42,6 +42,11 @@ impl From<String> for TokenType {
             ")" => Self::RPAREN,
             ";" => Self::SEMICOLON,
             "/" => Self::SLASH,
+            // TODO: handle integer overflows with grace, e.g., via TryFrom
+            text if text.chars().all(|c| c.is_digit(10)) => Self::INT(
+                text.parse::<usize>()
+                    .expect(format!("couldn't parse {} as integer", text).as_str()),
+            ),
             text if text.chars().all(|c| c.is_alphabetic() || c == '_') => {
                 Self::IDENT(text.to_owned())
             }
