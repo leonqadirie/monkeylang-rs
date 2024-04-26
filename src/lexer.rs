@@ -23,14 +23,42 @@ impl Lexer {
     fn next_token(&mut self) -> TokenType {
         skip_white_space(self);
 
-        if self.char.is_ascii_alphanumeric() || self.char == '_' {
-            read_dynamic_token(self)
-        } else {
-            let token = self.char.to_string().into();
-            self.read_char();
-
-            token
+        if self.char == '=' {
+            match self.peek_char() {
+                '=' => {
+                    self.read_char();
+                    self.read_char();
+                    return TokenType::Eq;
+                }
+                _ => {
+                    self.read_char();
+                    return TokenType::Assign;
+                }
+            }
         }
+
+        if self.char == '!' {
+            match self.peek_char() {
+                '=' => {
+                    self.read_char();
+                    self.read_char();
+                    return TokenType::NotEq;
+                }
+                _ => {
+                    self.read_char();
+                    return TokenType::Bang;
+                }
+            }
+        }
+
+        if self.char.is_ascii_alphanumeric() || self.char == '_' {
+            return read_dynamic_token(self);
+        }
+
+        let token = self.char.to_string().into();
+        self.read_char();
+
+        token
     }
 
     fn read_char(&mut self) {
@@ -47,6 +75,20 @@ impl Lexer {
         };
         self.pos = self.read_pos;
         self.read_pos += 1;
+    }
+
+    fn peek_char(&self) -> char {
+        if self.input.len() <= self.read_pos {
+            return '\0';
+        };
+
+        self.input.chars().nth(self.read_pos).expect(
+            format!(
+                "couldn't read next token as the lexer's read_pos {} is out of bounds.",
+                self.read_pos,
+            )
+            .as_str(),
+        )
     }
 }
 
@@ -74,65 +116,99 @@ mod tests {
 
     #[test]
     fn test_next_token() {
-        let input = "let five = 5;
-            let ten = 10;
+        let input = "let one = 1;
+            let two = 2;
             let add = fn(x, y) {
                 x + y;
             };
-            let result = add(five, ten);
-            !-/*6;
-            5 < 10 > 5;
+            let result = add(one, two);
+            !-/*3;
+            4 < 5 > 6;
+
+            if (7 < 8) {
+                return true;
+            } else {
+                return false;
+            }
+
+            9 == 9;
+            9 != 10;
         ";
         let expectation = [
-            TokenType::LET,
-            TokenType::IDENT("five".to_owned()),
-            TokenType::ASSIGN,
-            TokenType::INT(5),
-            TokenType::SEMICOLON,
-            TokenType::LET,
-            TokenType::IDENT("ten".to_owned()),
-            TokenType::ASSIGN,
-            TokenType::INT(10),
-            TokenType::SEMICOLON,
-            TokenType::LET,
-            TokenType::IDENT("add".to_owned()),
-            TokenType::ASSIGN,
-            TokenType::FUNCTION,
-            TokenType::LPAREN,
-            TokenType::IDENT("x".to_owned()),
-            TokenType::COMMA,
-            TokenType::IDENT("y".to_owned()),
-            TokenType::RPAREN,
-            TokenType::LBRACE,
-            TokenType::IDENT("x".to_owned()),
-            TokenType::PLUS,
-            TokenType::IDENT("y".to_owned()),
-            TokenType::SEMICOLON,
-            TokenType::RBRACE,
-            TokenType::SEMICOLON,
-            TokenType::LET,
-            TokenType::IDENT("result".to_owned()),
-            TokenType::ASSIGN,
-            TokenType::IDENT("add".to_owned()),
-            TokenType::LPAREN,
-            TokenType::IDENT("five".to_owned()),
-            TokenType::COMMA,
-            TokenType::IDENT("ten".to_owned()),
-            TokenType::RPAREN,
-            TokenType::SEMICOLON,
-            TokenType::BANG,
-            TokenType::MINUS,
-            TokenType::SLASH,
-            TokenType::ASTERISK,
-            TokenType::INT(6),
-            TokenType::SEMICOLON,
-            TokenType::INT(5),
+            TokenType::Let,
+            TokenType::Ident("one".to_owned()),
+            TokenType::Assign,
+            TokenType::Int(1),
+            TokenType::Semicolon,
+            TokenType::Let,
+            TokenType::Ident("two".to_owned()),
+            TokenType::Assign,
+            TokenType::Int(2),
+            TokenType::Semicolon,
+            TokenType::Let,
+            TokenType::Ident("add".to_owned()),
+            TokenType::Assign,
+            TokenType::Function,
+            TokenType::LParen,
+            TokenType::Ident("x".to_owned()),
+            TokenType::Comma,
+            TokenType::Ident("y".to_owned()),
+            TokenType::RParen,
+            TokenType::LBrace,
+            TokenType::Ident("x".to_owned()),
+            TokenType::Plus,
+            TokenType::Ident("y".to_owned()),
+            TokenType::Semicolon,
+            TokenType::RBrace,
+            TokenType::Semicolon,
+            TokenType::Let,
+            TokenType::Ident("result".to_owned()),
+            TokenType::Assign,
+            TokenType::Ident("add".to_owned()),
+            TokenType::LParen,
+            TokenType::Ident("one".to_owned()),
+            TokenType::Comma,
+            TokenType::Ident("two".to_owned()),
+            TokenType::RParen,
+            TokenType::Semicolon,
+            TokenType::Bang,
+            TokenType::Minus,
+            TokenType::Slash,
+            TokenType::Asterisk,
+            TokenType::Int(3),
+            TokenType::Semicolon,
+            TokenType::Int(4),
             TokenType::LT,
-            TokenType::INT(10),
+            TokenType::Int(5),
             TokenType::GT,
-            TokenType::INT(5),
-            TokenType::SEMICOLON,
-            TokenType::EOF,
+            TokenType::Int(6),
+            TokenType::Semicolon,
+            TokenType::If,
+            TokenType::LParen,
+            TokenType::Int(7),
+            TokenType::LT,
+            TokenType::Int(8),
+            TokenType::RParen,
+            TokenType::LBrace,
+            TokenType::Return,
+            TokenType::True,
+            TokenType::Semicolon,
+            TokenType::RBrace,
+            TokenType::Else,
+            TokenType::LBrace,
+            TokenType::Return,
+            TokenType::False,
+            TokenType::Semicolon,
+            TokenType::RBrace,
+            TokenType::Int(9),
+            TokenType::Eq,
+            TokenType::Int(9),
+            TokenType::Semicolon,
+            TokenType::Int(9),
+            TokenType::NotEq,
+            TokenType::Int(10),
+            TokenType::Semicolon,
+            TokenType::Eof,
         ];
 
         let mut lexer = Lexer::new(input.to_string());
