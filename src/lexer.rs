@@ -98,6 +98,8 @@ mod tests {
                 x + y;
             };
             let result = add(five, ten);
+            !-/*6;
+            5 < 10 > 5;
         ";
         let expectation = [
             TokenType::LET,
@@ -135,6 +137,18 @@ mod tests {
             TokenType::COMMA,
             TokenType::IDENT("ten".to_owned()),
             TokenType::RPAREN,
+            TokenType::SEMICOLON,
+            TokenType::BANG,
+            TokenType::MINUS,
+            TokenType::SLASH,
+            TokenType::ASTERISK,
+            TokenType::INT(6),
+            TokenType::SEMICOLON,
+            TokenType::INT(5),
+            TokenType::LT,
+            TokenType::INT(10),
+            TokenType::GT,
+            TokenType::INT(5),
             TokenType::SEMICOLON,
             TokenType::EOF,
         ];
