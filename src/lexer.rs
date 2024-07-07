@@ -1,14 +1,14 @@
 use crate::token::TokenType;
 
-struct Lexer {
-    input: String,
-    pos: usize,
+pub struct Lexer {
+    pub input: String,
+    pub pos: usize,
     read_pos: usize,
     char: char,
 }
 
 impl Lexer {
-    fn new(input: String) -> Self {
+    pub fn new(input: String) -> Self {
         let mut lexer = Self {
             input,
             pos: 0,
@@ -20,7 +20,7 @@ impl Lexer {
         lexer
     }
 
-    fn next_token(&mut self) -> TokenType {
+    pub fn next_token(&mut self) -> TokenType {
         skip_white_space(self);
 
         if self.char == '=' {
@@ -116,24 +116,25 @@ mod tests {
 
     #[test]
     fn test_next_token() {
-        let input = "let one = 1;
-            let two = 2;
-            let add = fn(x, y) {
-                x + y;
-            };
-            let result = add(one, two);
-            !-/*3;
-            4 < 5 > 6;
+        let input = r#"
+        let one = 1;
+        let two = 2;
+        let add = fn(x, y) {
+            x + y;
+        };
+        let result = add(one, two);
+        !-/*3;
+        4 < 5 > 6;
 
-            if (7 < 8) {
-                return true;
-            } else {
-                return false;
-            }
+        if (7 < 8) {
+            return true;
+        } else {
+            return false;
+        }
 
-            9 == 9;
-            9 != 10;
-        ";
+        9 == 9;
+        9 != 10;
+        "#;
         let expectation = [
             TokenType::Let,
             TokenType::Ident("one".to_owned()),
