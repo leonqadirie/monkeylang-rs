@@ -8,6 +8,9 @@ pub struct Lexer {
 }
 
 impl Lexer {
+    /// Creates a new `Lexer` for the given input.
+    ///
+    /// `input`: The UTF-8 text to tokenize.
     pub fn new(input: String) -> Self {
         let mut lexer = Self {
             input,
@@ -20,6 +23,8 @@ impl Lexer {
         lexer
     }
 
+    /// Advances the `Lexer` to read the next
+    /// non-whitespace token and returns it.
     pub fn next_token(&mut self) -> TokenType {
         skip_white_space(self);
 
@@ -61,6 +66,7 @@ impl Lexer {
         token
     }
 
+    /// Reads the next `char` into the the `Lexer`.
     fn read_char(&mut self) {
         self.char = if self.input.len() <= self.read_pos {
             '\0'
@@ -77,6 +83,7 @@ impl Lexer {
         self.read_pos += 1;
     }
 
+    /// Returns the `char` that is next to be read by the `Lexer`.
     fn peek_char(&self) -> char {
         if self.input.len() <= self.read_pos {
             return '\0';
@@ -92,6 +99,8 @@ impl Lexer {
     }
 }
 
+/// Advances the `Lexer` until all alphanumeric chars
+/// are read into a token of variant `Ident`
 fn read_dynamic_token(lexer: &mut Lexer) -> TokenType {
     let mut identifier = String::new();
     while lexer.char.is_alphanumeric() || lexer.char == '_' {
@@ -102,6 +111,7 @@ fn read_dynamic_token(lexer: &mut Lexer) -> TokenType {
     identifier.into()
 }
 
+/// Advances the `Lexer` until the last read `char` is not whitespace.
 fn skip_white_space(lexer: &mut Lexer) {
     while lexer.char == ' ' || lexer.char == '\t' || lexer.char == '\n' || lexer.char == '\r' {
         lexer.read_char()
